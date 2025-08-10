@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <ctype.h>
 #include <string.h>
+#include <signal.h>
 
 int is_positive_interger_value(const char *str) {
     if(str == NULL || strlen(str) == 0) {
@@ -26,19 +27,26 @@ int is_positive_interger_value(const char *str) {
 }
 
 
+int terminate_a_process(long int *p_id){
+    int result = kill(*p_id, SIGKILL);
 
-int main(int argc, char *argvc[]){
+    if(result == 0){
+        printf("Signal SIGKILL sent successfully to process %ld\n", *p_id);
+        return 1;
+    } else {
+        perror("Error sending signal");
+        return 0;
+    }
+}
 
-    // for(int i = 0; i < argc; i++) {
-    //     printf("%s\n", argvc[i]); 
-    // }
+void list_running_processes(){
     DIR *directory_stream;
-    printf("attempting to open the root");
+    printf("attempting to open the root\n");
     directory_stream = opendir("/proc");
    
     if(directory_stream == NULL) {
         perror("ERROR: unable to return a pointer to the proc directory stream.\n");
-        return 0;
+        return;
     }
 
     struct dirent *read_ptr = readdir(directory_stream);
@@ -49,5 +57,27 @@ int main(int argc, char *argvc[]){
         read_ptr = readdir(directory_stream);
     }
     closedir(directory_stream); 
+
+
+}
+
+int main(int argc, char *argvc[]){
+
+    // for(int i = 0; i < argc; i++) {
+    //     printf("%s\n", argvc[i]); 
+    // }
+    long int p_id = 0;
+    while(p_id != -1){
+            printf("Provide a process number to terminate (-1 to exit, -100 to list running processes): ");
+            scanf("%ld", &p_id);
+            printf("You entereed: %ld\n", p_id);
+            if(p_id == -1){
+                break;
+            } else if(p_id == -100){
+                list_running_processes();
+            } else{
+                terminate_a_process(&p_id);
+            }
+    }
     return 0;
 }
